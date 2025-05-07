@@ -1,0 +1,36 @@
+name: SonarCloud
+
+on:
+  push:
+    branches:
+      - main  # or master if your default branch is master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile || npm install
+
+      - name: Run tests (optional)
+        run: |
+          echo "Skipping tests for now"
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          organization: mominausman  # Your SonarCloud org key
+          projectKey: mominausman_canvas-lms  # Your SonarCloud project key
+          token: ${{ secrets.SONAR_TOKEN }}
