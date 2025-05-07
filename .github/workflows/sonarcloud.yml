@@ -1,36 +1,35 @@
-name: SonarCloud
+name: SonarCloud Scan
 
 on:
   push:
-    branches:
-      - main  # or master if your default branch is master
+    branches: [ main ]
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
   sonarcloud:
-    name: SonarCloud Scan
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
-
+    timeout-minutes: 90                # give it up to 1.5 hours
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v3
         with:
-          node-version: 18
+          fetch-depth: 0               # full history for analysis
 
-      - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile || npm install
-
-      - name: Run tests (optional)
-        run: |
-          echo "Skipping tests for now"
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+      - name: Cache Sonar packages
+        uses: actions/cache@v3
         with:
-          organization: mominausman  # Your SonarCloud org key
-          projectKey: mominausman_canvas-lms  # Your SonarCloud project key
-          token: ${{ secrets.SONAR_TOKEN }}
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run SonarCloud scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
